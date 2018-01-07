@@ -1,0 +1,9 @@
+name "xmpvis"
+description "A module player using XMP"
+authors "Georg Gadinger"
+copyright "Copyright © 2018 Georg Gadinger"
+license "BSD-2-Clause"
+
+dependency "derelict-sdl2" version="~>3.1.0-alpha.3"
+
+libs "xmp"
