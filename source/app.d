@@ -235,19 +235,31 @@ void drawChannelInfo(
     note = "%s%d".format(NoteName[ci.note % 12], ci.note / 12);
   }
 
-  // text shadow
-  colour.a = 0x4f;
-  drawText(renderer, font, "%s %02X v%02X p%02X".format(note, ci.instrument, ci.volume, ci.pan), colour, r, (r) {
-    r.x = 5 + 1;
-    r.y = (blkHeight * channel) + (blkHeight / 2) - (r.h / 2) + 1;
-  });
-
-  // actual text
-  colour.a = 0xff;
-  drawText(renderer, font, "%s %02X v%02X p%02X".format(note, ci.instrument, ci.volume, ci.pan), colour, r, (r) {
+  drawTextWithShadow(renderer, font, "%s %02X v%02X p%02X".format(note, ci.instrument, ci.volume, ci.pan), colour, r, (r) {
     r.x = 5;
     r.y = (blkHeight * channel) + (blkHeight / 2) - (r.h / 2);
   });
+}
+
+void drawTextWithShadow(
+  SDL_Renderer* renderer,
+  TTF_Font* font,
+  string text,
+  SDL_Color colour,
+  SDL_Rect pos,
+  void delegate(SDL_Rect *r) posModifier = null)
+{
+  colour.a = 0x4f;
+  drawText(renderer, font, text, colour, pos, (r) {
+    if (posModifier !is null)
+    {
+      posModifier(r);
+    }
+    r.x++;
+    r.y++;
+  });
+  colour.a = 0xff;
+  drawText(renderer, font, text, colour, pos, posModifier);
 }
 
 void drawText(
