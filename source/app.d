@@ -1,6 +1,7 @@
 import derelict.sdl2.sdl;
 import derelict.sdl2.ttf;
 import std.algorithm.comparison : min;
+import std.math : abs;
 import std.path : baseName;
 import std.stdio : writeln, stderr;
 import std.string : format, toStringz;
@@ -165,6 +166,8 @@ void drawChannel(
   r.w = blkWidth;
   r.h = blkHeight;
 
+  adjustRectForPanning(&r, ci.pan);
+
   SDL_SetRenderDrawColor(renderer, red, green, blue, cast(ubyte)(min(4 * ci.volume, 0xff)));
   SDL_RenderFillRect(renderer, &r);
 
@@ -191,6 +194,27 @@ void drawNoteDots(
   }
 }
 
+void adjustRectForPanning(
+  SDL_Rect* r,
+  ubyte pan)
+{
+  auto baseHeight = r.h;
+  short panHalf = pan - 0x80;  // this way a panning of centre is 0, left is < 0 and right > 0
+  if (panHalf == 0)
+  {
+    return;
+  }
+
+  auto steps = baseHeight / 255.0;
+  auto diff = cast(int)(abs(panHalf) * steps);
+
+  r.h -= diff;
+  if (panHalf > 0)
+  {
+    r.y += diff;
+  }
+}
+
 void drawChannelInfo(
   ref SDL_Renderer* renderer,
   ref TTF_Font* font,
@@ -213,14 +237,14 @@ void drawChannelInfo(
 
   // text shadow
   colour.a = 0x4f;
-  drawText(renderer, font, "%s %02X v%02X".format(note, ci.instrument, ci.volume), colour, r, (r) {
+  drawText(renderer, font, "%s %02X v%02X p%02X".format(note, ci.instrument, ci.volume, ci.pan), colour, r, (r) {
     r.x = 5 + 1;
     r.y = (blkHeight * channel) + (blkHeight / 2) - (r.h / 2) + 1;
   });
 
   // actual text
   colour.a = 0xff;
-  drawText(renderer, font, "%s %02X v%02X".format(note, ci.instrument, ci.volume), colour, r, (r) {
+  drawText(renderer, font, "%s %02X v%02X p%02X".format(note, ci.instrument, ci.volume, ci.pan), colour, r, (r) {
     r.x = 5;
     r.y = (blkHeight * channel) + (blkHeight / 2) - (r.h / 2);
   });
