@@ -66,6 +66,12 @@ class Xmp
     SDL_PauseAudio(0);
   }
 
+  void pauseModule() nothrow @nogc
+  {
+    SDL_PauseAudio(_playing);
+    _playing = !_playing;
+  }
+
   void stopModule()
   {
     _playing = false;

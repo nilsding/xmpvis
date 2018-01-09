@@ -6,6 +6,14 @@ import std.path : baseName;
 import std.stdio : writeln, stderr;
 import std.string : format, toStringz;
 
+version (Posix)
+{
+  import core.sys.posix.signal;
+  alias SignalHandler = extern (C) void function(int) nothrow @nogc @system;
+
+  __gshared Xmp* gshared_xmp;  // __gshared ref needed for signal handlers
+}
+
 import xmp.xmp;
 import xmp.libxmp : xmp_channel_info;
 
@@ -49,6 +57,22 @@ int main(string[] args)
 
   auto renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
   SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+  version (Posix)
+  {
+    gshared_xmp = &xmp;
+
+    // init signal handlers
+    SignalHandler doPause = (sig) nothrow @nogc {
+      gshared_xmp.pauseModule();
+      if (sig == SIGTSTP)
+      {
+        kill(0, SIGSTOP);
+      }
+    };
+    signal(SIGTSTP, doPause);
+    signal(SIGCONT, doPause);
+  }
 
   // load font
   auto font = TTF_OpenFont("data/vga.ttf", 16);
